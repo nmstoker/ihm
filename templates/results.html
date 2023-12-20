@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href='static/main.css' />
+    <title>Prediction Results</title>
+</head>
+<body>
+    <h1>Prediction Results</h1>
+    {% if predictions %}
+        <ul>
+            {% for prediction in predictions %}
+                <li>{{ prediction.label }}: {{ prediction.probability }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No predictions available.</p>
+    {% endif %}
+    <a href="/">Upload another image</a>
+</body>
+</html>
