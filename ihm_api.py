@@ -1,8 +1,12 @@
-from fastapi import FastAPI, File, UploadFile, Form
+from fastapi import FastAPI, File, UploadFile, Form, WebSocket
 import cv2
 import numpy as np
+import base64
+from io import BytesIO
 import json
 from joblib import load
+from datetime import datetime
+from pathlib import Path
 
 app = FastAPI()
 
@@ -49,6 +53,37 @@ async def create_upload_file(color_space: str = Form(...), top_n: int = Form(...
     if image is None:
         return {"error": "Invalid or corrupt image file"}
 
-    model_filename = f'classifier_{color_space}.joblib'
+    model_filename = Path(f'models/classifier_{color_space}.joblib')
     json_predictions = predict_top_n_labels_json(image, model_filename, color_space, top_n)
     return {"predictions": json_predictions}
+
+@app.websocket("/ws")
+async def websocket_endpoint(websocket: WebSocket):
+    await websocket.accept()
+    while True:
+        base64_data = await websocket.receive_text()
+        try:
+            # Decode the base64 data to a numpy array
+            img_data = base64.b64decode(base64_data.split(',')[1])  # Remove the header from data URL
+            nparr = np.frombuffer(img_data, np.uint8)
+            image = cv2.imdecode(nparr, cv2.IMREAD_COLOR)
+
+             # Save the image to a PNG file
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S%f")
+            filename = Path(f"saved_images/image_{timestamp}.png")
+            cv2.imwrite(str(filename), image)
+
+            # Assuming you have a default color space and top_n
+            top_n = 3  # Set your default top_n if needed
+
+            # Call your prediction function
+            color_space = "HSL"
+            model_filename = Path(f'models/classifier_{color_space}.joblib')
+            predictions = predict_top_n_labels_json(image, model_filename, color_space, top_n)
+
+            # Send back the predictions
+            await websocket.send_text(predictions)
+        except Exception as e:
+            # Handle exceptions
+            await websocket.send_text(f"Error: {str(e)}")
+            break

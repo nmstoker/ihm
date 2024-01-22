@@ -4,6 +4,7 @@ import numpy as np
 from sklearn.ensemble import RandomForestClassifier
 from sklearn.model_selection import train_test_split
 from joblib import dump
+from pathlib import Path
 
 def generate_histogram(image_path, color_space='RGB'):
     # Read the image
@@ -37,7 +38,9 @@ def load_images_from_folder(base_folder):
     
     return file_paths, labels
 
-base_folder = '/datasets/images'
+# base_folder = '/datasets/images'
+base_folder = '/home/neil/Datasets/nms_screenshots'
+
 file_paths, labels = load_images_from_folder(base_folder)
 
 color_space="HSL" # RGB | HSL | HSV
@@ -53,7 +56,7 @@ clf = RandomForestClassifier()
 clf.fit(X_train, y_train)
 
 # Save the model
-model_filename = f'classifier_{color_space}.joblib'
+model_filename = Path(f'models/classifier_{color_space}.joblib')
 dump(clf, model_filename)
 
 # Evaluate the classifier

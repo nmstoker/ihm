@@ -2,6 +2,7 @@ import json
 import cv2
 import numpy as np
 from joblib import load
+from pathlib import Path
 
 def generate_histogram(image_path, color_space='RGB'):
     # Read the image
@@ -67,7 +68,8 @@ def predict_top_n_labels_json(image_path, model_filename, color_space='RGB', top
 
     return json.dumps(top_n_predictions, indent=4)
 
-model_filename = 'classifier_HSL.joblib' # seems the best mode so far
+color_space="HSL" # seems the best mode so far
+model_filename = Path(f'models/classifier_{color_space}.joblib')
 
 # Example usage for regular single prediction
 # predicted_label = predict_label('test/20231218_204508.png', model_filename)
